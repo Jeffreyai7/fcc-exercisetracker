@@ -65,7 +65,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     _id: userId,
     username: user.username,
     description,
-    duration,
+    duration: parseInt(duration),
     date: exerciseDate.toDateString(),
   });
 });
@@ -77,7 +77,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
 
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  let userLogs = logs.filter((log) => log.userId === userId);
+  let userLogs = logs.filter((log) => log._id === userId);
   if (from) {
     const fromDate = new Date(from);
     userLogs = userLogs.filter((log) => log.date >= fromDate);
