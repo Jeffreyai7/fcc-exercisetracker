@@ -15,8 +15,53 @@ app.use(cors());
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const randomId = crypto.randomUUID();
+
+const users = [];
+const logs = [];
+
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
+});
+
+app.post("/api/users", (req, res) => {
+  const username = req.body.username;
+  if (!username) {
+    return res.status(400).json({ error: "Username is required" });
+  }
+  // Save user to database (mock)
+  users.push({ username, _id: randomId });
+
+  res.json({ username, _id: randomId });
+});
+
+app.get("/api/users", (req, res) => {
+  res.json(users);
+});
+
+app.post("/api/users/:_id/exercises", (req, res) => {
+  const userId = req.params._id;
+  const { description, duration, date } = req.body;
+  const user = users.find((u) => u._id === userId);
+
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const exercise = {
+    userId,
+    description,
+    duration: parseInt(duration),
+    date: date ? new Date(date) : new Date(),
+  };
+
+  logs.push(exercise);
+
+  res.json({
+    _id: userId,
+    description,
+    duration,
+    date: date ? new Date(date).toISOString() : new Date().toISOString(),
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
