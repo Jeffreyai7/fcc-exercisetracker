@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 
 // Create __filename and __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -15,8 +16,6 @@ app.use(cors());
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-const randomId = crypto.randomUUID();
 
 const users = [];
 const logs = [];
@@ -31,6 +30,7 @@ app.post("/api/users", (req, res) => {
     return res.status(400).json({ error: "Username is required" });
   }
   // Save user to database (mock)
+  const randomId = crypto.randomUUID();
   users.push({ username, _id: randomId });
 
   res.json({ username, _id: randomId });
@@ -47,11 +47,15 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 
   if (!user) return res.status(404).json({ error: "User not found" });
 
+  const exerciseDate = date ? new Date(date) : new Date();
+  if (isNaN(exerciseDate.getTime())) {
+    return res.status(400).json({ error: "Invalid date format" });
+  }
   const exercise = {
     userId,
     description,
     duration: parseInt(duration),
-    date: date ? new Date(date) : new Date(),
+    date: exerciseDate,
   };
 
   logs.push(exercise);
@@ -60,7 +64,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     _id: userId,
     description,
     duration,
-    date: date ? new Date(date).toISOString() : new Date().toISOString(),
+    date: exerciseDate.toDateString(),
   });
 });
 
@@ -81,7 +85,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
     userLogs = userLogs.filter((log) => log.date <= toDate);
   }
   if (limit) {
-    userLogs = userLogs.slice(0, limit);
+    userLogs = userLogs.slice(0, parseInt(limit));
   }
 
   res.json({
@@ -91,7 +95,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
     log: userLogs.map((log) => ({
       description: log.description,
       duration: log.duration,
-      date: log.date.toISOString(),
+      date: log.date.toDateString(),
     })),
   });
 });
