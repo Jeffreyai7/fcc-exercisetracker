@@ -52,7 +52,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     return res.status(400).json({ error: "Invalid date format" });
   }
   const exercise = {
-    userId,
+    _id: userId,
     username: user.username,
     description,
     duration: parseInt(duration),
