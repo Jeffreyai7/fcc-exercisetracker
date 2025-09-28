@@ -53,6 +53,7 @@ app.post("/api/users/:_id/exercises", (req, res) => {
   }
   const exercise = {
     userId,
+    username: user.username,
     description,
     duration: parseInt(duration),
     date: exerciseDate,
