@@ -64,6 +64,38 @@ app.post("/api/users/:_id/exercises", (req, res) => {
   });
 });
 
+app.get("/api/users/:_id/logs", (req, res) => {
+  const userId = req.params._id;
+  const { from, to, limit } = req.query;
+  const user = users.find((u) => u._id === userId);
+
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  let userLogs = logs.filter((log) => log.userId === userId);
+  if (from) {
+    const fromDate = new Date(from);
+    userLogs = userLogs.filter((log) => log.date >= fromDate);
+  }
+  if (to) {
+    const toDate = new Date(to);
+    userLogs = userLogs.filter((log) => log.date <= toDate);
+  }
+  if (limit) {
+    userLogs = userLogs.slice(0, limit);
+  }
+
+  res.json({
+    _id: userId,
+    username: user.username,
+    count: userLogs.length,
+    log: userLogs.map((log) => ({
+      description: log.description,
+      duration: log.duration,
+      date: log.date.toISOString(),
+    })),
+  });
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
